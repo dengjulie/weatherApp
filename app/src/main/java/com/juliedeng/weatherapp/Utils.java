@@ -1,20 +1,26 @@
 package com.juliedeng.weatherapp;
 
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by juliedeng on 3/8/18.
@@ -34,10 +40,13 @@ public class Utils {
         View view;
         String latitude;
         String longitude;
+        String location;
 
-        public JSONRequestTask(String latitude, String longitude) {
+        public JSONRequestTask(String latitude, String longitude, String location, View view) {
             this.latitude = latitude;
             this.longitude = longitude;
+            this.location = location;
+            this.view = view;
         }
 
         @Override
@@ -60,24 +69,36 @@ public class Utils {
         protected void onPostExecute(JSONObject jsonObject) {
             super.onPostExecute(jsonObject);
             try {
-                String weatherIcon = ((JSONObject) (jsonObject.getJSONObject("daily").getJSONArray("data").get(0))).getString("icon");
-                String temperatureLow = ((JSONObject) (jsonObject.getJSONObject("daily").getJSONArray("data").get(0))).getString("temperatureMin");
-                String temperatureHigh = ((JSONObject) (jsonObject.getJSONObject("daily").getJSONArray("data").get(0))).getString("temperatureMax");
-                String description = ((JSONObject) (jsonObject.getJSONObject("daily").getJSONArray("data").get(0))).getString("summary");
-                String rainProb = ((JSONObject) (jsonObject.getJSONObject("daily").getJSONArray("data").get(0))).getString("precipProbability");
-                String rainSummary = ((JSONObject) (jsonObject.getJSONObject("hourly").getString("summary");
+                JSONObject todayData = (JSONObject) jsonObject.getJSONObject("daily").getJSONArray("data").get(0);
+                String weatherIcon = todayData.getString("icon");
+                String temperatureLow = todayData.getString("temperatureMin");
+                String temperatureHigh = todayData.getString("temperatureMax");
+                String description = todayData.getString("summary");
+                String rainProb = todayData.getString("precipProbability");
+                String rainSummary = jsonObject.getJSONObject("hourly").getString("summary");
 
-                ((TextView) view.findViewById(R.id.high_low)).setText(temperatureHigh + "/" + temperatureLow);
-                ((TextView) view.findViewById(R.id.description)).setText(description);
-                ((TextView) view.findViewById(R.id.precipprob)).setText(precipProb);
-                ((TextView) view.findViewById(R.id.preciptype)).setText(precipType);
-                ((TextView) view.findViewById(R.id.preciptime)).setText(s);
-                String icon = ((JSONObject) (jsonObject.getJSONObject("daily").getJSONArray("data").get(0))).getString("icon");
-                ImageView weatherIcon = view.findViewById(R.id.weathericon);
 
-                ((TextView) view.findViewById(R.id.day)).setText(jsonObject.getJSONObject("currently").getString("temperature"));
 
+                TextView mTemp, mDescription, mLocation, mRain;
+                ImageView mIcon;
+                mTemp = view.findViewById(R.id.high_low);
+                mDescription = view.findViewById(R.id.description);
+                mLocation = view.findViewById(R.id.city_state);
+                mRain = view.findViewById(R.id.rain);
+                mIcon = view.findViewById(R.id.icon);
+
+                mTemp.setText(temperatureHigh + "/" + temperatureLow);
+                mDescription.setText(description);
+                mRain.setText(rainProb + "/n" + rainSummary);
+                mLocation.setText(location);
+                switch (weatherIcon) {
+                    case "rain":
+                        mIcon.setImageResource(R.drawable.ic_launcher_background);
+                        break;
+                    default:
+                }
             } catch (Exception e) {
+                e.printStackTrace();
             }
             super.onPostExecute(jsonObject);
         }

@@ -47,6 +47,12 @@ public class WeatherFragment extends Fragment {
 
     int position;
     private LocationListener locationListener;
+    double longitude;
+    double latitude;
+    String cityName;
+    String stateName;
+    Location location;
+    String city_state;
 
     static WeatherFragment newInstance(int position) {
         WeatherFragment fragment = new WeatherFragment();
@@ -66,9 +72,9 @@ public class WeatherFragment extends Fragment {
             ActivityCompat.requestPermissions( getActivity(), new String[] {  android.Manifest.permission.ACCESS_FINE_LOCATION  },
                     0 );
         }
-        Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        double longitude = location.getLongitude();
-        double latitude = location.getLatitude();
+        location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        longitude = location.getLongitude();
+        latitude = location.getLatitude();
 
         Geocoder geocoder = new Geocoder(getContext(), Locale.getDefault());
         List<Address> addresses = null;
@@ -77,8 +83,9 @@ public class WeatherFragment extends Fragment {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        String cityName = addresses.get(0).getAddressLine(0);
-        String stateName = addresses.get(0).getAddressLine(1);
+        cityName = addresses.get(0).getAddressLine(0);
+        stateName = addresses.get(0).getAddressLine(1);
+        city_state = cityName + ", " + stateName;
 
         locationListener = new LocationListener() {
             @Override
@@ -109,14 +116,13 @@ public class WeatherFragment extends Fragment {
         switch(position) {
             case 0:
                 view = inflater.inflate(R.layout.fragment_weather, container, false);
-
-
-
+                new Utils.JSONRequestTask(String.valueOf(longitude), String.valueOf(latitude), city_state, view).execute(view);
                 break;
             default:
                 view = inflater.inflate(R.layout.fragment_future_weather, container, false);
                 TextView mDay;
                 mDay = view.findViewById(R.id.day);
+                mDay.setText("test");
 
                 ArrayList<WeatherDay> weatherDayArrayList = new ArrayList<>();
 
